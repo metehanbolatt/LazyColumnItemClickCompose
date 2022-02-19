@@ -19,6 +19,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.metehanbolat.lazycolumnitemclickcompose.ui.theme.LazyColumnItemClickComposeTheme
 
 class MainActivity : ComponentActivity() {
@@ -26,14 +32,34 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             LazyColumnItemClickComposeTheme {
-                DynamicList()
+                NavigationScreen()
             }
         }
     }
 }
 
 @Composable
-fun DynamicList() {
+fun NavigationScreen() {
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = "main") {
+        composable("main") {
+            DynamicList(navController = navController)
+        }
+        composable("details/{countryName}", arguments = listOf(
+            navArgument("countryName") {
+                type = NavType.StringType
+            }
+        )) {
+            val countryName = it.arguments?.getString("countryName")
+            countryName?.let {
+                DetailsCountry(countryName = countryName)
+            }
+        }
+    }
+}
+
+@Composable
+fun DynamicList(navController: NavController) {
     val countryList = remember { mutableStateListOf("Türkiye", "İtalya", "Almanya", "Japonya") }
 
     LazyColumn {
@@ -51,7 +77,9 @@ fun DynamicList() {
                     }
                 ) {
                     Row(
-                        modifier = Modifier.padding(10.dp).fillMaxWidth(),
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -61,9 +89,9 @@ fun DynamicList() {
                         )
 
                         OutlinedButton(onClick = {
-                            Log.d("List", "$country button selected!")
+                            navController.navigate("details/$country")
                         }) {
-                            Text(text = "Choose")
+                            Text(text = "Detail")
                         }
                     }
                 }
